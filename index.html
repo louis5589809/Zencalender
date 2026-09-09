@@ -6,133 +6,165 @@
     <title>Zen Calendar</title>
     <style>
         :root {
-            --bg-color: #1e242b;
-            --card-bg: rgba(255, 255, 255, 0.07);
-            --text-color: #e0e6ed;
+            --bg-color: #1b2028;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --text-color: #e2e8f0;
             --accent-color: #8ab4f8;
-            --muted-color: rgba(255, 255, 255, 0.2);
+            --border-color: rgba(255, 255, 255, 0.08);
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             transition: background-color 0.4s ease, color 0.4s ease;
         }
 
-        body {
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
             background-color: var(--bg-color);
             color: var(--text-color);
-            min-height: 100vh;
+        }
+
+        .fullscreen-container {
+            width: 100vw;
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            padding: 30px 50px;
         }
 
-        .container {
-            width: 100%;
-            max-width: 500px;
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        /* Top Controls: Color Picker & Audio */
+        /* Top Bar Controls */
         .controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
+            width: 100%;
+            height: 50px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
         .color-picker-wrapper {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
+            gap: 10px;
+            font-size: 1rem;
             opacity: 0.8;
+            cursor: pointer;
         }
 
         input[type="color"] {
             -webkit-appearance: none;
             border: none;
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             cursor: pointer;
             background: transparent;
         }
 
-        input[type="color"]::-webkit-color-swatch-wrapper {
-            padding: 0;
-        }
-
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         input[type="color"]::-webkit-color-swatch {
-            border: 2px solid rgba(255, 255, 255, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.4);
             border-radius: 50%;
         }
 
-        .music-btn {
-            background: transparent;
-            border: 1px solid var(--text-color);
+        .action-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
             color: var(--text-color);
-            padding: 8px 16px;
-            border-radius: 20px;
+            padding: 10px 20px;
+            border-radius: 30px;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             display: flex;
             align-items: center;
             gap: 8px;
+            backdrop-filter: blur(10px);
             transition: all 0.3s ease;
         }
 
-        .music-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
         }
 
-        /* Clock Display */
+        /* Main Fullscreen Dashboard Layout */
+        .dashboard {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1.3fr;
+            gap: 40px;
+            align-items: center;
+            height: calc(100vh - 110px);
+        }
+
+        /* Left side: Clock & Header */
         .clock-section {
-            text-align: center;
-            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            padding-left: 20px;
         }
 
         .time {
-            font-size: 3.2rem;
-            font-weight: 300;
-            letter-spacing: 2px;
+            font-size: calc(5vw + 2rem);
+            font-weight: 200;
+            line-height: 1;
+            letter-spacing: -2px;
+            margin-bottom: 15px;
         }
 
         .date-str {
-            font-size: 1.1rem;
+            font-size: calc(1vw + 1rem);
             opacity: 0.7;
-            margin-top: 5px;
+            font-weight: 300;
         }
 
-        /* Calendar Display */
+        /* Right side: Full-size Calendar */
+        .calendar-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(16px);
+            border-radius: 24px;
+            padding: 35px;
+            height: 90%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        }
+
         .calendar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-            font-weight: 600;
+            font-size: 1.6rem;
+            font-weight: 500;
+            margin-bottom: 20px;
         }
 
         .nav-btn {
             background: none;
             border: none;
             color: var(--text-color);
-            font-size: 1.2rem;
+            font-size: 1.8rem;
             cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 5px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
         }
 
         .nav-btn:hover {
@@ -142,21 +174,28 @@
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
+            gap: 12px;
+            flex: 1;
             text-align: center;
         }
 
         .day-name {
-            font-size: 0.8rem;
+            font-size: 1rem;
             opacity: 0.5;
-            padding-bottom: 5px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .day {
-            padding: 10px 0;
-            border-radius: 10px;
-            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            font-size: 1.1rem;
             cursor: default;
+            transition: all 0.2s ease;
         }
 
         .day.empty {
@@ -167,44 +206,64 @@
             background-color: var(--accent-color);
             color: #121212;
             font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Mobile Responsive Adjustments */
+        @media (max-width: 900px) {
+            body { overflow: auto; }
+            .fullscreen-container { height: auto; padding: 20px; }
+            .dashboard { grid-template-columns: 1fr; height: auto; gap: 30px; }
+            .clock-section { align-items: center; text-align: center; padding-left: 0; }
+            .time { font-size: 4rem; }
+            .calendar-card { height: 500px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <!-- Settings Bar -->
+    <div class="fullscreen-container">
+        <!-- Top Controls Bar -->
         <div class="controls">
             <div class="color-picker-wrapper">
-                <input type="color" id="bgPicker" value="#1e242b">
-                <span>Theme</span>
+                <input type="color" id="bgPicker" value="#1b2028">
+                <span>Theme Color</span>
             </div>
-            <button class="music-btn" id="musicBtn" onclick="toggleZenMusic()">
-                <span id="musicIcon">🎵</span> Zen Sound
-            </button>
+            
+            <div class="control-group">
+                <button class="action-btn" id="musicBtn" onclick="toggleZenMusic()">
+                    <span id="musicIcon">🎵</span> Zen Sound
+                </button>
+                <button class="action-btn" onclick="toggleFullscreen()">
+                    ⛶ Fullscreen
+                </button>
+            </div>
         </div>
 
-        <!-- Real-Time Clock -->
-        <div class="clock-section">
-            <div class="time" id="clock">00:00:00</div>
-            <div class="date-str" id="fullDate">Loading date...</div>
-        </div>
-
-        <!-- Monthly Calendar -->
-        <div class="calendar-section">
-            <div class="calendar-header">
-                <button class="nav-btn" onclick="changeMonth(-1)">&lt;</button>
-                <span id="monthYear"></span>
-                <button class="nav-btn" onclick="changeMonth(1)">&gt;</button>
+        <!-- Fullscreen Dashboard -->
+        <div class="dashboard">
+            <!-- Left Side: Live Time & Date -->
+            <div class="clock-section">
+                <div class="time" id="clock">00:00:00</div>
+                <div class="date-str" id="fullDate">Loading date...</div>
             </div>
-            <div class="calendar-grid" id="calendarGrid">
-                <!-- Day names & dates rendered by JavaScript -->
+
+            <!-- Right Side: Calendar -->
+            <div class="calendar-card">
+                <div class="calendar-header">
+                    <button class="nav-btn" onclick="changeMonth(-1)">&lt;</button>
+                    <span id="monthYear"></span>
+                    <button class="nav-btn" onclick="changeMonth(1)">&gt;</button>
+                </div>
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- Calendar populated via JavaScript -->
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Real-Time Clock Logic
+        // Real-Time Clock
         function updateClock() {
             const now = new Date();
             const hours = String(now.getHours()).padStart(2, '0');
@@ -229,12 +288,10 @@
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
 
-            // Month Display
             const monthNames = ["January", "February", "March", "April", "May", "June", 
                                 "July", "August", "September", "October", "November", "December"];
             document.getElementById('monthYear').textContent = `${monthNames[month]} ${year}`;
 
-            // Day names header
             const daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
             daysOfWeek.forEach(day => {
                 const dayHeader = document.createElement('div');
@@ -243,19 +300,16 @@
                 grid.appendChild(dayHeader);
             });
 
-            // Calculate dates
             const firstDayIndex = new Date(year, month, 1).getDay();
             const totalDays = new Date(year, month + 1, 0).getDate();
             const today = new Date();
 
-            // Empty slots for previous month padding
             for (let i = 0; i < firstDayIndex; i++) {
                 const emptyCell = document.createElement('div');
                 emptyCell.classList.add('day', 'empty');
                 grid.appendChild(emptyCell);
             }
 
-            // Fill actual month days
             for (let dayNum = 1; dayNum <= totalDays; dayNum++) {
                 const dayCell = document.createElement('div');
                 dayCell.classList.add('day');
@@ -278,28 +332,42 @@
 
         renderCalendar();
 
-        // Dynamic Color Theme Switcher
+        // Theme Switcher & Auto-Text Contrast
         const bgPicker = document.getElementById('bgPicker');
         bgPicker.addEventListener('input', (e) => {
             const hex = e.target.value;
             document.documentElement.style.setProperty('--bg-color', hex);
             
-            // Auto-adjust font brightness based on background color
             const r = parseInt(hex.substr(1,2),16);
             const g = parseInt(hex.substr(3,2),16);
             const b = parseInt(hex.substr(5,2),16);
             const brightness = (r * 299 + g * 587 + b * 114) / 1000;
             
             if (brightness > 128) {
-                document.documentElement.style.setProperty('--text-color', '#1a1a1a');
-                document.documentElement.style.setProperty('--card-bg', 'rgba(0, 0, 0, 0.06)');
+                document.documentElement.style.setProperty('--text-color', '#1a202c');
+                document.documentElement.style.setProperty('--card-bg', 'rgba(0, 0, 0, 0.05)');
+                document.documentElement.style.setProperty('--border-color', 'rgba(0, 0, 0, 0.1)');
             } else {
-                document.documentElement.style.setProperty('--text-color', '#e0e6ed');
-                document.documentElement.style.setProperty('--card-bg', 'rgba(255, 255, 255, 0.07)');
+                document.documentElement.style.setProperty('--text-color', '#e2e8f0');
+                document.documentElement.style.setProperty('--card-bg', 'rgba(255, 255, 255, 0.05)');
+                document.documentElement.style.setProperty('--border-color', 'rgba(255, 255, 255, 0.08)');
             }
         });
 
-        // Ambient Zen Audio Generator (Web Audio API)
+        // Browser Fullscreen Toggle
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        // Zen Audio Synth
         let audioCtx = null;
         let isPlaying = false;
         let mainGain = null;
@@ -307,14 +375,13 @@
 
         function toggleZenMusic() {
             const btn = document.getElementById('musicBtn');
-            
             if (!isPlaying) {
                 startZenMusic();
-                btn.style.background = 'rgba(255, 255, 255, 0.2)';
+                btn.style.background = 'rgba(255, 255, 255, 0.25)';
                 isPlaying = true;
             } else {
                 stopZenMusic();
-                btn.style.background = 'transparent';
+                btn.style.background = 'var(--card-bg)';
                 isPlaying = false;
             }
         }
@@ -325,20 +392,16 @@
             }
 
             mainGain = audioCtx.createGain();
-            mainGain.gain.setValueAtTime(0.05, audioCtx.currentTime); // Low background volume
+            mainGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
             mainGain.connect(audioCtx.destination);
 
-            // Meditative chord frequency frequencies (Hz)
-            const baseFreqs = [110, 164.81, 196.00, 220, 293.66]; // A minor / Ambient scale
+            const baseFreqs = [110, 164.81, 196.00, 220, 293.66];
 
             oscillators = baseFreqs.map(freq => {
                 const osc = audioCtx.createOscillator();
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-
-                // Add slight detune for a warm ambient sound
-                osc.detune.setValueAtTime((Math.random() - 0.5) * 10, audioCtx.currentTime);
-
+                osc.detune.setValueAtTime((Math.random() - 0.5) * 8, audioCtx.currentTime);
                 osc.connect(mainGain);
                 osc.start();
                 return osc;
