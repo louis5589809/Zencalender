@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zen Calendar</title>
+    <style>
+        :root {
+            --bg-color: #1e242b;
+            --card-bg: rgba(255, 255, 255, 0.07);
+            --text-color: #e0e6ed;
+            --accent-color: #8ab4f8;
+            --muted-color: rgba(255, 255, 255, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Top Controls: Color Picker & Audio */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .color-picker-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+        }
+
+        .music-btn {
+            background: transparent;
+            border: 1px solid var(--text-color);
+            color: var(--text-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .music-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Clock Display */
+        .clock-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .time {
+            font-size: 3.2rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        .date-str {
+            font-size: 1.1rem;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        /* Calendar Display */
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            text-align: center;
+        }
+
+        .day-name {
+            font-size: 0.8rem;
+            opacity: 0.5;
+            padding-bottom: 5px;
+        }
+
+        .day {
+            padding: 10px 0;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            cursor: default;
+        }
+
+        .day.empty {
+            visibility: hidden;
+        }
+
+        .day.today {
+            background-color: var(--accent-color);
+            color: #121212;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Settings Bar -->
+        <div class="controls">
+            <div class="color-picker-wrapper">
+                <input type="color" id="bgPicker" value="#1e242b">
+                <span>Theme</span>
+            </div>
+            <button class="music-btn" id="musicBtn" onclick="toggleZenMusic()">
+                <span id="musicIcon">🎵</span> Zen Sound
+            </button>
+        </div>
+
+        <!-- Real-Time Clock -->
+        <div class="clock-section">
+            <div class="time" id="clock">00:00:00</div>
+            <div class="date-str" id="fullDate">Loading date...</div>
+        </div>
+
+        <!-- Monthly Calendar -->
+        <div class="calendar-section">
+            <div class="calendar-header">
+                <button class="nav-btn" onclick="changeMonth(-1)">&lt;</button>
+                <span id="monthYear"></span>
+                <button class="nav-btn" onclick="changeMonth(1)">&gt;</button>
+            </div>
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Day names & dates rendered by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Real-Time Clock Logic
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('fullDate').textContent = now.toLocaleDateString(undefined, options);
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Calendar Logic
+        let currentDate = new Date();
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            // Month Display
+            const monthNames = ["January", "February", "March", "April", "May", "June", 
+                                "July", "August", "September", "October", "November", "December"];
+            document.getElementById('monthYear').textContent = `${monthNames[month]} ${year}`;
+
+            // Day names header
+            const daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+            daysOfWeek.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.classList.add('day-name');
+                dayHeader.textContent = day;
+                grid.appendChild(dayHeader);
+            });
+
+            // Calculate dates
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const totalDays = new Date(year, month + 1, 0).getDate();
+            const today = new Date();
+
+            // Empty slots for previous month padding
+            for (let i = 0; i < firstDayIndex; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.classList.add('day', 'empty');
+                grid.appendChild(emptyCell);
+            }
+
+            // Fill actual month days
+            for (let dayNum = 1; dayNum <= totalDays; dayNum++) {
+                const dayCell = document.createElement('div');
+                dayCell.classList.add('day');
+                dayCell.textContent = dayNum;
+
+                if (dayNum === today.getDate() && 
+                    month === today.getMonth() && 
+                    year === today.getFullYear()) {
+                    dayCell.classList.add('today');
+                }
+
+                grid.appendChild(dayCell);
+            }
+        }
+
+        function changeMonth(direction) {
+            currentDate.setMonth(currentDate.getMonth() + direction);
+            renderCalendar();
+        }
+
+        renderCalendar();
+
+        // Dynamic Color Theme Switcher
+        const bgPicker = document.getElementById('bgPicker');
+        bgPicker.addEventListener('input', (e) => {
+            const hex = e.target.value;
+            document.documentElement.style.setProperty('--bg-color', hex);
+            
+            // Auto-adjust font brightness based on background color
+            const r = parseInt(hex.substr(1,2),16);
+            const g = parseInt(hex.substr(3,2),16);
+            const b = parseInt(hex.substr(5,2),16);
+            const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+            
+            if (brightness > 128) {
+                document.documentElement.style.setProperty('--text-color', '#1a1a1a');
+                document.documentElement.style.setProperty('--card-bg', 'rgba(0, 0, 0, 0.06)');
+            } else {
+                document.documentElement.style.setProperty('--text-color', '#e0e6ed');
+                document.documentElement.style.setProperty('--card-bg', 'rgba(255, 255, 255, 0.07)');
+            }
+        });
+
+        // Ambient Zen Audio Generator (Web Audio API)
+        let audioCtx = null;
+        let isPlaying = false;
+        let mainGain = null;
+        let oscillators = [];
+
+        function toggleZenMusic() {
+            const btn = document.getElementById('musicBtn');
+            
+            if (!isPlaying) {
+                startZenMusic();
+                btn.style.background = 'rgba(255, 255, 255, 0.2)';
+                isPlaying = true;
+            } else {
+                stopZenMusic();
+                btn.style.background = 'transparent';
+                isPlaying = false;
+            }
+        }
+
+        function startZenMusic() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            mainGain = audioCtx.createGain();
+            mainGain.gain.setValueAtTime(0.05, audioCtx.currentTime); // Low background volume
+            mainGain.connect(audioCtx.destination);
+
+            // Meditative chord frequency frequencies (Hz)
+            const baseFreqs = [110, 164.81, 196.00, 220, 293.66]; // A minor / Ambient scale
+
+            oscillators = baseFreqs.map(freq => {
+                const osc = audioCtx.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+                // Add slight detune for a warm ambient sound
+                osc.detune.setValueAtTime((Math.random() - 0.5) * 10, audioCtx.currentTime);
+
+                osc.connect(mainGain);
+                osc.start();
+                return osc;
+            });
+        }
+
+        function stopZenMusic() {
+            if (mainGain) {
+                mainGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1);
+                setTimeout(() => {
+                    oscillators.forEach(osc => osc.stop());
+                    oscillators = [];
+                }, 1000);
+            }
+        }
+    </script>
+</body>
+</html>
